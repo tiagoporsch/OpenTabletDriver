@@ -4,7 +4,7 @@ using OpenTabletDriver.Tablet;
 
 namespace OpenTabletDriver.Configurations.Parsers.TenMoon
 {
-    public struct TenMoonTabletReport : ITabletReport
+    public struct TenMoonTabletReport : ITabletReport, IAuxReport
     {
         public TenMoonTabletReport(byte[] report)
         {
@@ -18,12 +18,24 @@ namespace OpenTabletDriver.Configurations.Parsers.TenMoon
 
             var buttonPressed = (report[9] & 6) != 0;
             var prePressure = report[5] << 8 | report[6];
-            Pressure = (uint)(0x0672 - (prePressure - (buttonPressed ? 50 : 0)));
+            Pressure = (uint)(1800 - (prePressure - (buttonPressed ? 50 : 0)));
 
             PenButtons = new bool[]
             {
-                report[9].IsBitSet(2),
+                (report[9] & 6) == 4,
                 (report[9] & 6) == 6
+            };
+
+            AuxButtons = new bool[]
+            {
+                !report[12].IsBitSet(0),
+                !report[12].IsBitSet(5),
+                !report[12].IsBitSet(1),
+                !report[12].IsBitSet(4),
+                !report[11].IsBitSet(6),
+                !report[11].IsBitSet(7),
+                !report[11].IsBitSet(5),
+                !report[11].IsBitSet(4),
             };
         }
 
@@ -31,5 +43,6 @@ namespace OpenTabletDriver.Configurations.Parsers.TenMoon
         public Vector2 Position { set; get; }
         public uint Pressure { set; get; }
         public bool[] PenButtons { set; get; }
+        public bool[] AuxButtons { set; get; }
     }
 }
